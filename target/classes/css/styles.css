@@ -1,0 +1,20 @@
+.root {
+    -fx-font-family: 'Arial';
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+
+.button {
+    -fx-background-color: #0078D7;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+    -fx-min-width: 100px;  /* Mindestbreite der Buttons */
+}
+
+.button:hover {
+    -fx-background-color: #005A9E;
+}
