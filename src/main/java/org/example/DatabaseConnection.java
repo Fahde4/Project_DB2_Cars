@@ -17,4 +17,26 @@ public class DatabaseConnection {
             return false;
         }
     }
+    public static boolean validateLogin(String username, String password) {
+        boolean isValid = false;
+        try {
+            Connection connection = DatabaseConnection.getConnection();
+            String query = "SELECT COUNT(*) FROM dbo.thrait02_userCred WHERE username = ? AND password = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next() && resultSet.getInt(1) > 0) {
+                isValid = true;
+            }
+
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return isValid;
+    }
 }

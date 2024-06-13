@@ -1,15 +1,14 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -26,15 +25,44 @@ public class MainApp extends Application{
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Auto Such- und Vergleichssystem");
 
-        // Willkommensbildschirm
+        // Login-Bildschirm
         Label welcomeLabel = new Label("Willkommen bei der Autosuche!");
-        Button proceedButton = new Button("Weiter");
-        proceedButton.setOnAction(e -> showMainScreen(primaryStage));
 
-        VBox welcomeLayout = new VBox(20, welcomeLabel, proceedButton);
+        // Benutzername und Passwort-Felder
+        TextField userTextField = new TextField();
+        userTextField.setPromptText("Benutzername");
+        userTextField.getStyleClass().add("text-field");
+
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Passwort");
+        passwordField.getStyleClass().add("password-field");
+
+        // Login-Button
+        Button loginButton = new Button("Login");
+        loginButton.setOnAction(e -> {
+            String username = userTextField.getText();
+            String password = passwordField.getText();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                connectionStatusLabel.setText("Bitte füllen Sie alle Felder aus.");
+            } else if (DatabaseConnection.validateLogin(username, password)) {
+                showMainScreen(primaryStage);
+            } else {
+                connectionStatusLabel.setText("Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.");
+            }
+        });
+
+        // Layout für die Eingabefelder und den Login-Button
+        VBox loginLayout = new VBox(10, userTextField, passwordField, loginButton, connectionStatusLabel);
+        loginLayout.setAlignment(Pos.CENTER);
+        loginLayout.setMaxWidth(250); // Maximale Breite für das Layout setzen
+
+        // Gesamtes Layout für den Willkommens- und Login-Bereich
+        VBox welcomeLayout = new VBox(20, welcomeLabel, loginLayout);
         welcomeLayout.setAlignment(Pos.CENTER);
 
         Scene welcomeScene = new Scene(welcomeLayout, 800, 600);
+        welcomeScene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         primaryStage.setScene(welcomeScene);
         primaryStage.show();
     }
@@ -71,7 +99,7 @@ public class MainApp extends Application{
         Button button1 = new Button("Daten abrufen");
         button1.setOnAction(e -> retrieveDataFromDatabase());
 
-        Button button2 = new Button("Button 2");
+        Button button2 = new Button("Hinzufügen");
         Button button3 = new Button("Button 3");
         leftLayout.getChildren().addAll(button1, button2, button3);
 
@@ -79,7 +107,7 @@ public class MainApp extends Application{
         mainLayout.setLeft(leftLayout);
 
         // Box für die Datenanzeige
-        VBox centerLayout = new VBox(10);
+        VBox centerLayout = new VBox(20);
         centerLayout.setAlignment(Pos.CENTER);
         centerLayout.setPadding(new Insets(10));
         centerLayout.getChildren().add(dataTextArea);
@@ -96,7 +124,7 @@ public class MainApp extends Application{
             if (DatabaseConnection.isConnected()) {
                 connected = true;
                 connectionStatusLabel.setText("Verbindung zur Datenbank erfolgreich");
-                connectButton.setText("Log-off");
+                connectButton.setText("Trenne die Verbindung");
             } else {
                 connectionStatusLabel.setText("Verbindung zur Datenbank fehlgeschlagen");
             }
@@ -130,16 +158,52 @@ public class MainApp extends Application{
     }
 
     private void displayData(ResultSet resultSet) throws SQLException {
-        // Daten im Textfeld anzeigen
-        StringBuilder data = new StringBuilder();
-        while (resultSet.next()) {
-            // Hier werden alle Spaltenwerte einer Zeile aneinandergehängt
-            for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                data.append(resultSet.getString(i)).append("\t");
-            }
-            data.append("\n");
+        GridPane gridPane = new GridPane();
+        gridPane.setGridLinesVisible(true); // Zeige Gitterlinien
+
+        int columnCount = resultSet.getMetaData().getColumnCount();
+
+        // Set column constraints for the GridPane
+        for (int i = 0; i < columnCount; i++) {
+            ColumnConstraints column = new ColumnConstraints();
+            column.setHgrow(Priority.ALWAYS); // Säulenbreite an den verfügbaren Platz anpassen
+            gridPane.getColumnConstraints().add(column);
         }
-        dataTextArea.setText(data.toString());
+
+        // Add column headers
+        for (int i = 1; i <= columnCount; i++) {
+            Label headerLabel = new Label(resultSet.getMetaData().getColumnName(i));
+            headerLabel.setStyle("-fx-font-weight: bold;");
+            headerLabel.setFont(Font.font("Segoe UI", 12));
+            GridPane.setHalignment(headerLabel, HPos.CENTER);
+            GridPane.setValignment(headerLabel, VPos.CENTER);
+            gridPane.add(headerLabel, i - 1, 0);
+        }
+
+        // Add data rows
+        int rowIndex = 1;
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                String cellData = resultSet.getString(i);
+                Label cellLabel = new Label(cellData);
+                cellLabel.setStyle("-fx-padding: 5px;");
+                cellLabel.setFont(Font.font("Segoe UI", 12));
+                GridPane.setHalignment(cellLabel, HPos.CENTER);
+                GridPane.setValignment(cellLabel, VPos.CENTER);
+                gridPane.add(cellLabel, i - 1, rowIndex);
+            }
+            rowIndex++;
+        }
+
+        // Wrap the GridPane in a ScrollPane for better viewing
+        ScrollPane scrollPane = new ScrollPane(gridPane);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+
+        // Clear the center layout and add the scroll pane
+        VBox centerLayout = (VBox) ((BorderPane) dataTextArea.getScene().getRoot()).getCenter();
+        centerLayout.getChildren().clear();
+        centerLayout.getChildren().add(scrollPane);
     }
 
     public static void main(String[] args) {

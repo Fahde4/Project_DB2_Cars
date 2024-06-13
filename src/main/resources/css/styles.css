@@ -1,20 +1,38 @@
 .root {
-    -fx-font-family: 'Arial';
+    -fx-font-family: "Arial", sans-serif;
 }
 
-.label {
-    -fx-font-size: 14px;
-    -fx-text-fill: #333;
-}
-
+/* Style für Buttons */
 .button {
-    -fx-background-color: #0078D7;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-padding: 10px;
-    -fx-min-width: 100px;  /* Mindestbreite der Buttons */
+    -fx-background-radius: 0;
+    -fx-padding: 10px 20px; /* Padding für eine bessere Optik */
+    -fx-background-color: #9FC5E8;
+    -fx-text-fill: white; /* Weiße Schriftfarbe */
+    -fx-font-size: 14px; /* Schriftgröße */
+    -fx-border-color: #9FC5E8; /* Randfarbe */
+    -fx-border-width: 2px; /* Randbreite */
+    -fx-cursor: hand; /* Zeiger als Cursor */
 }
 
+/* Hover-Effekt für Buttons */
 .button:hover {
-    -fx-background-color: #005A9E;
+    -fx-background-color: #8FB1D0; /* Etwas dunkleres Grün beim Hover */
+}
+
+/* Klick-Effekt für Buttons */
+.button:pressed {
+    -fx-background-color: #475868; /* Noch dunkleres Grün beim Klicken */
+}
+
+.text-field, .password-field {
+    -fx-pref-width: 200px; /* Breite der Textfelder */
+    -fx-padding: 5px; /* Innenabstand */
+    -fx-background-radius: 10px; /* Abrundung der Ecken */
+    -fx-border-radius: 10px; /* Abrundung der Ränder */
+    -fx-border-color: gray; /* Randfarbe */
+}
+
+.text-field::prompt-text, .password-field::prompt-text {
+    -fx-text-fill: gray; /* Farbe des Platzhaltertextes */
+    -fx-font-style: italic; /* Stil des Platzhaltertextes */
 }
